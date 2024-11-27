@@ -1,12 +1,56 @@
+ul {
+    list-style-type: none;
+}
 
-/* 
+.checked-style {
+    text-decoration: line-through;
+    color: lightgray;
+}
 
-    You can write your own styles here...
-    
-    
-    ...Or you can use the import command to include 
-    other sylesheets into your bunde as well, e.j:
-    
-    import 'relative/path/to/stylesheet.scss';
+body {
+    background-color: rgb(248, 249, 254);
+}
 
-*/
+.enter-button {
+    font-size: 0.7rem;
+    margin: 5px -50px;
+}
+
+
+.task-holder, .task-input {
+    width: 90%; 
+}
+
+
+@media (min-width: 576px) {
+    .task-holder, .task-input {
+        width: 90%; 
+    }
+}
+
+
+@media (min-width: 768px) {
+    .task-holder, .task-input {
+        width: 70%; 
+    }
+}
+
+@media (min-width: 992px) {
+    .task-holder, .task-input {
+        width: 50%;
+    }
+}
+
+
+@media (min-width: 1200px) {
+    .task-holder, .task-input {
+        width: 40%; 
+    }
+}
+
+
+@media (min-width: 1400px) {
+    .task-holder, .task-input {
+        width: 40%;
+    }
+}
