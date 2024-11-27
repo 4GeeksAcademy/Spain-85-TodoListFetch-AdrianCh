@@ -23,13 +23,13 @@ const Home = () => {
 	// Adds a newTask object with {text: Input value on Enter, completed: If this tasks is checked}
 	const addNewTask = (e) => {
 		if (e.key ==='Enter') {
-			if (e.target.value !== "") {
+			if (e.target.value !== "") { 
 				let newTask = e.target.value
 				setTask([...tasks, {text :newTask, completed: false}])
 				setInputValue("")
 				console.log(tasks)
 			}
-		}
+		} 
 	}
 
 	// Adds the checked-style class to one task and maps over all the tasks updating it
