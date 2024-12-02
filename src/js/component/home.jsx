@@ -9,8 +9,9 @@ const Home = () => {
 	const[inputValue,setInputValue] = useState("")
 	const[tasks, setTask] = useState([])
 	const[newUser, setNewUser] = useState("")
+	const[newPassword, setPassword] = useState("")
 	const[loginUser, setloginUser] = useState("")
-	const[currentUserName, setCurrentUserName] =useState("")
+	const[currentUserName, setCurrentUserName] = useState(null)
 	const[errorMessageLogin, setErrorMessageLogin] = useState("")
 	const[errorMessageRegister, setErrorMessageRegister] = useState("")
 
@@ -34,25 +35,25 @@ const Home = () => {
 
 	// async function updateInfoUser() {
 		
-        // try{
-        //     let response = await fetch("https://playground.4geeks.com/todo/todos/Adrian_Chapple",{
-        //     method: "POST",
-		// 	headers: {
-		// 		"Content-Type": "application/json",
-		// 	},
-			// body: JSON.stringify({
-			// 	"label": "string",
-			// 	"is_done": true,
-			// 	"id": 45
-			//   })
-        //     })
-        // let data = await response.json()
-        // console.log(data)
-        // return		           //obligatorio poner un return aunque sea asi
-        // }catch(error){
-        //     console.log(error) // si algo sale mal te aviso
-        //     return
-        // }
+    //     try{
+    //         let response = await fetch("https://playground.4geeks.com/todo/todos/Adrian_Chapple",{
+    //         method: "POST",
+	// 		headers: {
+	// 			"Content-Type": "application/json",
+	// 		},
+	// 		body: JSON.stringify({
+	// 			"label": `password ${crypto.randomUUID()}`,
+	// 			"is_done": false,
+	// 			"id": crypto.randomUUID()
+	// 		  })
+    //         })
+    //     let data = await response.json()
+    //     console.log(data)
+    //     return		           //obligatorio poner un return aunque sea asi
+    //     }catch(error){
+    //         console.log(error) // si algo sale mal te aviso
+    //         return
+    //     }
     // }
 
     // useEffect(() => {
@@ -87,7 +88,25 @@ const Home = () => {
     // }, [])
 
 
+	useEffect(() => {
+		const popoverTriggerInfoNoSession = document.querySelector('#info-not-logged-in');
+		if (popoverTriggerInfoNoSession) {
+		  new bootstrap.Popover(popoverTriggerInfoNoSession, {
+			container: 'body',
+		  });
+		}
+	}, []);
 
+	useEffect(() => {
+		const popoverTriggerDelete = document.querySelector('#careful-delete');
+		if (popoverTriggerDelete) {
+		  new bootstrap.Popover(popoverTriggerDelete, {
+			container: 'body',
+			placement: 'bottom',
+			fallbackPlacements: []
+		  });
+		}
+	}, [currentUserName]);
 
 
 	async function createUserName() {
@@ -165,47 +184,60 @@ const Home = () => {
 	}
 
 
-	// // Retrieves localStorage
-	// useEffect(() => {
-	// 	const data = window.localStorage.getItem('my-saved-tasks')
-	// 	data !== null ? setTask(JSON.parse(data)) : ""
-	// }, [])
+	// Retrieves localStorage
+	useEffect(() => {
+		const data = window.localStorage.getItem('my-user-name');
+		const parsedData = JSON.parse(data);
+		if (parsedData !== "" && parsedData !== null) {
+		  setCurrentUserName(parsedData);
+		  GetInfoUser(parsedData);
+		}
+	  }, []);
 
-	// // Saves to localStorage
-	// useEffect (() => {
-	// 	window.localStorage.setItem('my-saved-tasks', JSON.stringify(tasks))
-	// }, [tasks])
+	// Saves to localStorage
+	useEffect (() => {
+		if (currentUserName !== "" && currentUserName !== null){
+			window.localStorage.setItem('my-user-name', JSON.stringify(currentUserName))
+		}
+	}, [currentUserName])
 
 	// Adds a newTask object with {text: Input value on Enter, is_done: If this tasks is checked}
 	const addNewTask = (e) => {
 		if (e.key ==='Enter') {
 			if (e.target.value !== "") {
-				async function updateTasksAPI() {
-					try{
-						let response = await fetch(`https://playground.4geeks.com/todo/todos/${currentUserName}`,{
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify({
-							  "label": e.target.value,
-							  "is_done": false,
-							  "id": 0
-							}
-						  )
-						})
-					console.log(response.body)
-					let data = await response.json()
-					console.log(data)
-					setInputValue("")
-					await GetInfoUser(currentUserName)
-					return
-					}catch(error){
-						console.log(error)
+				if (currentUserName){
+					async function updateTasksAPI() {
+						try{
+							let response = await fetch(`https://playground.4geeks.com/todo/todos/${currentUserName}`,{
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({
+								"label": e.target.value,
+								"is_done": false,
+								"id": 0
+								}
+							)
+							})
+						console.log(response.body)
+						let data = await response.json()
+						console.log(data)
+						setInputValue("")
+						await GetInfoUser(currentUserName)
 						return
+						}catch(error){
+							console.log(error)
+							return
+						}
 					}
+					updateTasksAPI()
+				} else {
+					let newTask = e.target.value
+					console.log(newTask);
+					setTask([...tasks, {label :newTask, is_done: false}])
+					setInputValue("")
 				}
-				updateTasksAPI()
 			}
 		} 
 	}
@@ -213,13 +245,15 @@ const Home = () => {
 
 	async function GetInfoUser(loginUser) {
 		try{
-			let response = await fetch(`https://playground.4geeks.com/todo/users/${loginUser ? loginUser : "randomUser"}`,{
+			let response = await fetch(`https://playground.4geeks.com/todo/users/${loginUser}`,{
 			method: "GET"
 			})
 		let data = await response.json()
 		console.log(data)
-		setCurrentUserName(loginUser)
-		setTask(data.todos)
+		if(loginUser || data.detail !== `User ${loginUser} doesn't exist.` || loginUser !== ""){
+			setCurrentUserName(loginUser)
+			setTask(data.todos)
+		}
 		return
 		}catch(error){
 			console.log(error)
@@ -334,9 +368,9 @@ const Home = () => {
 							<div>
 								<p className="m-0"> Welcome <strong>{currentUserName}</strong></p>
 								<div className="d-flex gap-1 justify-content-end">
-									<button type="button" className="btn btn-warning" onClick={() => {setCurrentUserName(null), window.location.reload()}}><i className="fa-solid fa-right-from-bracket"></i></button>
+									<button type="button" className="btn btn-warning" onClick={() => {setCurrentUserName(null),window.localStorage.setItem('my-user-name', JSON.stringify("")), window.location.reload()}}><i className="fa-solid fa-right-from-bracket"></i></button>
 									<button type="button" className="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalLogin"><i className="fa-solid fa-user"></i></button>
-									<button type="button" className="btn btn-danger" onClick={() => {deleteUserName(),setCurrentUserName(null), window.location.reload()}} ><i className="fa-solid fa-trash"></i></button>
+									<button type="button" className="btn btn-danger" onClick={() => {deleteUserName(),setCurrentUserName(null), setTask(""), window.localStorage.setItem('my-user-name', JSON.stringify(""))}} id="careful-delete" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Careful, this will delete your username" data-bs-trigger="hover"><i className="fa-solid fa-trash"></i></button>
 								</div>
 							</div>
 							
@@ -365,8 +399,8 @@ const Home = () => {
 							<div className="h-auto">
 								<label htmlFor="" className="col-6">Username</label>
 								<input type="text" className="col-6" placeholder="Add your username" id="user-name-login" onChange={(e) => setloginUser(e.target.value)}/>
-								<label htmlFor="" className="col-6">Password</label>
-								<input type="text" className="col-6 mt-2"/>
+								<label htmlFor="" className="col-6" >Password</label>
+								<input type="text" className="col-6 mt-2" placeholder="Work in progress..." onChange={(e) => setPassword(e.target.value)}/>
 								<p className={`mt-2 mb-0 text-${errorMessageLogin ==="Logged in!" ? "success" : "danger"}`}>{errorMessageLogin}</p>
 							</div>
 						</div>
@@ -390,7 +424,7 @@ const Home = () => {
 								<label htmlFor="" className="col-6">Username</label>
 								<input type="text" className="col-6" placeholder="Add your username" id="user-name-register" onChange={(e) => setNewUser(e.target.value)}/>
 								<label htmlFor="" className="col-6">Password</label>
-								<input type="text" className="col-6 mt-2"/>
+								<input type="text" className="col-6 mt-2" placeholder="Work in progress..." onChange={(e) => setPassword(e.target.value)}/>
 								<p className={`mt-2 mb-0 text-${errorMessageRegister ===`Registered as ${currentUserName}` ? "success" : "danger"}`}>{errorMessageRegister}</p>
 							</div>
 						</div>
@@ -406,11 +440,12 @@ const Home = () => {
 			<div className="d-flex mx-auto mt-3 task-input">
 				<input type="text" placeholder="Add a new task" className="w-100" spellCheck='false' onChange={(e) => setInputValue(e.target.value)}  value={inputValue} onKeyDown= {addNewTask}/> 
 				<div onClick={addNewTask}><kbd className={`${inputValue ? "enter-button": "d-none"}`}>Enter</kbd></div> 
+				<i className={`fa-solid fa-circle-info d-flex align-items-center ms-1 info-not-logged-in ${currentUserName ? "d-none" : ""}`} id="info-not-logged-in" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-content="We recommend registering/logging in to save your tasks" data-bs-trigger="hover"></i>
 			</div>
 			
 			<ul className="mx-auto mt-3 p-0 text-start task-holder">
 				{tasks.length === 0 ? (
-					<li className="mt-2">No todos left</li>
+					<li className=" ms-3">No todos left</li>
 				) : (
 					tasks.map((task, index) => (
 					<li key={index} className="mt-2 border p-2">
