@@ -17,20 +17,6 @@ const Home = () => {
 	const[errorMessageLogin, setErrorMessageLogin] = useState("")
 	const[errorMessageRegister, setErrorMessageRegister] = useState("")
 
-	async function eliminateAllUserData() {
-        try{
-            let response = await fetch("https://playground.4geeks.com/todo/users",{
-            method: "DELETE"
-            })
-        let data = await response.json()
-        console.log(data)
-        return
-        }catch(error){
-            console.log(error)
-            return
-        }
-    }
-
 	// async function updateInfoUser() {
 		
     //     try{
@@ -85,6 +71,21 @@ const Home = () => {
     //     deleteInfoUser()
     // }, [])
 
+
+	// Tries to eliminate all User Data and fails majestically
+	async function eliminateAllUserData() {
+        try{
+            let response = await fetch("https://playground.4geeks.com/todo/users",{
+            method: "DELETE"
+            })
+        let data = await response.json()
+        console.log(data)
+        return
+        }catch(error){
+            console.log(error)
+            return
+        }
+    }
 
 	// Creates a new username upon register
 	async function createUserName() {
@@ -327,7 +328,7 @@ const Home = () => {
 			}
 	}deleteInfoUser()}
 
-	
+
 	// e.target.textContent gives us the value of the inputed value on contentEditable = "true"
 	// This lets us save it as a newState and generate a new map with the updated text
 	// Also updates in API at the same time
