@@ -1,4 +1,6 @@
 import React, {useState, useEffect} from "react";
+import errorGif from '../../img/Error 405.gif';
+
 
 // Nos ayudará con la funcionalidad del drag and drop: https://youtu.be/XlXT9lhy-4M?si=r3-oGXFKvVXH8m3d
 import {Reorder} from "framer-motion"
@@ -15,23 +17,19 @@ const Home = () => {
 	const[errorMessageLogin, setErrorMessageLogin] = useState("")
 	const[errorMessageRegister, setErrorMessageRegister] = useState("")
 
-	// async function GetInfoUser() {
-    //     try{
-    //         let response = await fetch("https://playground.4geeks.com/todo/users/Adrian_Chapple",{
-    //         method: "GET"
-    //         })
-    //     let data = await response.json()
-    //     console.log(data)
-    //     return		           //obligatorio poner un return aunque sea asi
-    //     }catch(error){
-    //         console.log(error) // si algo sale mal te aviso
-    //         return
-    //     }
-    // }
-
-    // useEffect(() => {
-    //     GetInfoUser()
-    // }, [])
+	async function eliminateAllUserData() {
+        try{
+            let response = await fetch("https://playground.4geeks.com/todo/users",{
+            method: "DELETE"
+            })
+        let data = await response.json()
+        console.log(data)
+        return
+        }catch(error){
+            console.log(error)
+            return
+        }
+    }
 
 	// async function updateInfoUser() {
 		
@@ -88,27 +86,7 @@ const Home = () => {
     // }, [])
 
 
-	useEffect(() => {
-		const popoverTriggerInfoNoSession = document.querySelector('#info-not-logged-in');
-		if (popoverTriggerInfoNoSession) {
-		  new bootstrap.Popover(popoverTriggerInfoNoSession, {
-			container: 'body',
-		  });
-		}
-	}, []);
-
-	useEffect(() => {
-		const popoverTriggerDelete = document.querySelector('#careful-delete');
-		if (popoverTriggerDelete) {
-		  new bootstrap.Popover(popoverTriggerDelete, {
-			container: 'body',
-			placement: 'bottom',
-			fallbackPlacements: []
-		  });
-		}
-	}, [currentUserName]);
-
-
+	// Creates a new username upon register
 	async function createUserName() {
 		try {
 			let response = await fetch(`https://playground.4geeks.com/todo/users/${newUser}`, {
@@ -134,10 +112,12 @@ const Home = () => {
 		}
 	}
 
+	// Sends correct messaging on registering (usually an erro)
 	function errorMessageRegisterData(data) {
 		setErrorMessageRegister(data)
 	}
 
+	// Access a created account 
 	async function loginUserName() {
         try{
             let response = await fetch(`https://playground.4geeks.com/todo/users/${loginUser}`,{
@@ -160,11 +140,12 @@ const Home = () => {
         }
 	}
 
+	// Sends correct messaging on logging in (usually an erro)
 	function errorMessageLoginData(data) {
 		setErrorMessageLogin(data)
 	}
 
-
+	// Deletes Username on click 
 	async function deleteUserName() {
 		try {
 			let response = await fetch(`https://playground.4geeks.com/todo/users/${currentUserName}`, {
@@ -184,7 +165,7 @@ const Home = () => {
 	}
 
 
-	// Retrieves localStorage
+	// Retrieves account from localStorage if theres an account
 	useEffect(() => {
 		const data = window.localStorage.getItem('my-user-name');
 		const parsedData = JSON.parse(data);
@@ -194,14 +175,40 @@ const Home = () => {
 		}
 	  }, []);
 
-	// Saves to localStorage
+
+	// Saves account information to localStorage, if there is an account
 	useEffect (() => {
 		if (currentUserName !== "" && currentUserName !== null){
 			window.localStorage.setItem('my-user-name', JSON.stringify(currentUserName))
 		}
 	}, [currentUserName])
 
-	// Adds a newTask object with {text: Input value on Enter, is_done: If this tasks is checked}
+
+	// Popover Triggers (didnt know how to do them in React)
+	useEffect(() => {
+		const popoverTriggerInfoNoSession = document.querySelector('#info-not-logged-in');
+		if (popoverTriggerInfoNoSession) {
+		  new bootstrap.Popover(popoverTriggerInfoNoSession, {
+			container: 'body',
+		  });
+		}
+	}, []);
+
+
+	// Popover Triggers (didnt know how to do them in React)
+	useEffect(() => {
+		const popoverTriggerDelete = document.querySelector('#careful-delete');
+		if (popoverTriggerDelete) {
+		  new bootstrap.Popover(popoverTriggerDelete, {
+			container: 'body',
+			placement: 'bottom',
+			fallbackPlacements: []
+		  });
+		}
+	}, [currentUserName]);
+
+
+	// Checks if Enter key is pressed => Checks if theres something written in imput => Goes online mode if theres a currentUserName / Or goes offline mode
 	const addNewTask = (e) => {
 		if (e.key ==='Enter') {
 			if (e.target.value !== "") {
@@ -243,6 +250,7 @@ const Home = () => {
 	}
 
 
+	// Callback function to get task information from a logged in user and refresh tasks
 	async function GetInfoUser(loginUser) {
 		try{
 			let response = await fetch(`https://playground.4geeks.com/todo/users/${loginUser}`,{
@@ -250,7 +258,7 @@ const Home = () => {
 			})
 		let data = await response.json()
 		console.log(data)
-		if(loginUser || data.detail !== `User ${loginUser} doesn't exist.` || loginUser !== ""){
+		if(loginUser && data.detail !== `User ${loginUser} doesn't exist.` && loginUser !== ""){
 			setCurrentUserName(loginUser)
 			setTask(data.todos)
 		}
@@ -262,7 +270,7 @@ const Home = () => {
 	}
 
 
-	// Adds the checked-style class to one task and maps over all the tasks updating it
+	// Adds the checked-style class to one task and maps over all the tasks updating it, also updates in API
 	function checkTask(index, is_done) {
 		async function checkTaskUser(index, is_done) {
 			try{
@@ -292,7 +300,8 @@ const Home = () => {
 		checkTaskUser(index, is_done)
 	}
 
-	// Filters through tasks eliminating one if it coincides with the index of button
+
+	// Filters through tasks eliminating one if it coincides with the index of button, also updates in API
 	const removeTask = (index) => {
 		async function deleteInfoUser() {
 			try{
@@ -311,15 +320,17 @@ const Home = () => {
 
 			const newTaskItems = tasks.filter((_,i) => i !== index)
 			setTask(newTaskItems)
-			return		           //obligatorio poner un return aunque sea asi
+			return
 			}catch(error){
-				console.log(error) // si algo sale mal te aviso
+				console.log(error)
 				return
 			}
 	}deleteInfoUser()}
 
+	
 	// e.target.textContent gives us the value of the inputed value on contentEditable = "true"
 	// This lets us save it as a newState and generate a new map with the updated text
+	// Also updates in API at the same time
 	function editInsideTask(e, index) {
 		// Prevents line-jump on Enter key
 		e.preventDefault()
@@ -364,29 +375,99 @@ const Home = () => {
         		</div>
 				<div className="mx-lg-5 mx-sm-4 my-1" id="navbarSupportedContent">
 					<ul className="navbar-nav me-auto mb-2 mb-lg-0">
-						{currentUserName ? 
-							<div>
-								<p className="m-0"> Welcome <strong>{currentUserName}</strong></p>
-								<div className="d-flex gap-1 justify-content-end">
-									<button type="button" className="btn btn-warning" onClick={() => {setCurrentUserName(null),window.localStorage.setItem('my-user-name', JSON.stringify("")), window.location.reload()}}><i className="fa-solid fa-right-from-bracket"></i></button>
-									<button type="button" className="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalLogin"><i className="fa-solid fa-user"></i></button>
-									<button type="button" className="btn btn-danger" onClick={() => {deleteUserName(),setCurrentUserName(null), setTask(""), window.localStorage.setItem('my-user-name', JSON.stringify(""))}} id="careful-delete" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Careful, this will delete your username" data-bs-trigger="hover"><i className="fa-solid fa-trash"></i></button>
+							{currentUserName ?
+								<div>
+									<div className="d-flex d-lg-block d-none">
+										<p className="m-0 me-1"> Welcome </p>
+										<strong>{currentUserName}</strong>
+									</div>
+									<div className="d-flex gap-1 justify-content-end">
+										<button type="button" className="btn btn-warning d-lg-block d-none" onClick={() => {setCurrentUserName(null), window.localStorage.setItem('my-user-name', JSON.stringify("")), window.location.reload() }}><i className="fa-solid fa-right-from-bracket"></i></button>
+										<button type="button" className="btn btn-success d-lg-block d-none" data-bs-toggle="modal" data-bs-target="#modalLogin"><i className="fa-solid fa-user"></i></button>
+										<button type="button" className="btn btn-danger d-lg-block d-none" onClick={() => {deleteUserName(), setCurrentUserName(null), setTask(""), window.localStorage.setItem('my-user-name', JSON.stringify("")) }} id="careful-delete" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Careful, this will delete your username" data-bs-trigger="hover"><i className="fa-solid fa-trash"></i></button>
+									</div>
+									<button className="btn p-4 m-0 d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+										<i className="fa-solid fa-bars fa-2x"></i>
+									</button>
+									<div className="offcanvas offcanvas-end" tabIndex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+										<div className="offcanvas-header">
+											<h5 className="offcanvas-title fs-1" id="offcanvasRightLabel">Welcome <strong>{currentUserName}</strong></h5>
+											<button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+										</div>
+										<div className="offcanvas-body d-lg-none d-flex flex-column">
+											<button className="dropdown-item fs-3" data-bs-toggle="modal" data-bs-target="#modalLogin">
+												<div className="d-flex align-items-center bg-body-tertiary p-3 border border-bottom-1">
+													<i className="fa-solid fa-user mx-2"></i>
+													<p className="mb-0">Change User</p>
+												</div>
+											</button>
+											<button className="dropdown-item fs-3" onClick={() => {deleteUserName(), setCurrentUserName(null), setTask(""), window.localStorage.setItem('my-user-name', JSON.stringify("")) }} id="careful-delete" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Careful, this will delete your username" data-bs-trigger="hover">
+												<div className="d-flex align-items-center bg-body-tertiary p-3 border border-bottom-1">
+													<i className="fa-solid fa-trash mx-2"></i>
+													<p className="mb-0">Delete User</p>
+												</div>
+											</button>
+											<button className="dropdown-item fs-3" data-bs-toggle="modal" data-bs-target="#modalDelete" onClick={eliminateAllUserData}>
+												<div className="d-flex align-items-center bg-body-tertiary p-3 border border-bottom-1">
+													<i className="fa-solid fa-skull mx-2 "></i>
+													<p className="mb-0">Delete all data in the server </p>
+												</div>
+											</button>
+											<hr className="mt-auto" />
+											<button className="dropdown-item text-danger fs-3 text-center" onClick={() => {setCurrentUserName(null), window.localStorage.setItem('my-user-name', JSON.stringify("")), window.location.reload() }}>Log out</button>
+										</div>
+									</div>
 								</div>
-							</div>
-							
-						: 
-							<div className="align-content-center me-2 mb-0 p-0 d-flex">
-								<li className="nav-item d-block">
-									<button type="button" className="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalLogin">Login</button>
-								</li>
-								<li className="nav-item d-block">
-									<button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegister">Register</button>
-								</li>
-							</div>
-						}
+
+								:
+
+								<div className="align-content-center me-2 mb-0 p-0 d-flex ">
+									<li className="nav-item d-block">
+										<button type="button" className="btn btn-success me-2 d-lg-block d-none" data-bs-toggle="modal" data-bs-target="#modalLogin">Login</button>
+									</li>
+									<li className="nav-item d-block">
+										<button type="button" className="btn btn-primary d-lg-block d-none" data-bs-toggle="modal" data-bs-target="#modalRegister">Register</button>
+									</li>
+
+									<button className="btn p-4 m-0 d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+										<i className="fa-solid fa-bars fa-2x"></i>
+									</button>
+
+									<div className="offcanvas offcanvas-end" tabIndex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+										<div className="offcanvas-header">
+											<h5 className="offcanvas-title fs-1" id="offcanvasRightLabel">Offline mode</h5>
+											<button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+										</div>
+										<div className="offcanvas-body d-lg-none d-flex flex-column">
+											<button className="dropdown-item fs-3" data-bs-toggle="modal" data-bs-target="#modalRegister">
+												<div className="d-flex align-items-center bg-body-tertiary p-3 border border-bottom-1">
+													<i className="fa-solid fa-user mx-2"></i>
+													<p className="mb-0">Register</p>
+												</div>
+											</button>
+											<button className="dropdown-item fs-3" data-bs-toggle="modal" data-bs-target="#modalDelete" onClick={eliminateAllUserData}>
+												<div className="d-flex align-items-center bg-body-tertiary p-3 border border-bottom-1">
+													<i className="fa-solid fa-skull mx-2 "></i>
+													<p className="mb-0">Delete all data in the server </p>
+												</div>
+											</button>
+											<hr className="mt-auto" />
+											<button className="dropdown-item text-success fs-3 text-center" data-bs-toggle="modal" data-bs-target="#modalLogin">Log in</button>
+										</div>
+									</div>
+								</div>
+							}
 					</ul>
 				</div>
 			</nav>
+
+			<div className="modal fade" id="modalDelete" tabIndex="-1" aria-labelledby="modalDelete" aria-hidden="true">
+				<div className="modal-dialog">
+						<div className="modal-body">
+							<img src={errorGif} alt="" />
+						</div>
+				</div>
+			</div>
 
 			<div className="modal fade" id="modalLogin" tabIndex="-1" aria-labelledby="modalLogin" aria-hidden="true">
 				<div className="modal-dialog">
@@ -400,7 +481,7 @@ const Home = () => {
 								<label htmlFor="" className="col-6">Username</label>
 								<input type="text" className="col-6" placeholder="Add your username" id="user-name-login" onChange={(e) => setloginUser(e.target.value)}/>
 								<label htmlFor="" className="col-6" >Password</label>
-								<input type="text" className="col-6 mt-2" placeholder="Work in progress..." onChange={(e) => setPassword(e.target.value)}/>
+								<input type="text" className="col-6 mt-2" placeholder=">:^(" onChange={(e) => setPassword(e.target.value)}/>
 								<p className={`mt-2 mb-0 text-${errorMessageLogin ==="Logged in!" ? "success" : "danger"}`}>{errorMessageLogin}</p>
 							</div>
 						</div>
@@ -424,7 +505,7 @@ const Home = () => {
 								<label htmlFor="" className="col-6">Username</label>
 								<input type="text" className="col-6" placeholder="Add your username" id="user-name-register" onChange={(e) => setNewUser(e.target.value)}/>
 								<label htmlFor="" className="col-6">Password</label>
-								<input type="text" className="col-6 mt-2" placeholder="Work in progress..." onChange={(e) => setPassword(e.target.value)}/>
+								<input type="text" className="col-6 mt-2" placeholder=">:^(" onChange={(e) => setPassword(e.target.value)}/>
 								<p className={`mt-2 mb-0 text-${errorMessageRegister ===`Registered as ${currentUserName}` ? "success" : "danger"}`}>{errorMessageRegister}</p>
 							</div>
 						</div>

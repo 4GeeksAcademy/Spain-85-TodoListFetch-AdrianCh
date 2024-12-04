@@ -21,6 +21,11 @@ body {
     width: 90%; 
 }
 
+img {
+    width: 500px;
+    height: 400px;
+}
+
 
 @media (min-width: 576px) {
     .task-holder, .task-input {
